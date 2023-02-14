@@ -2,18 +2,24 @@
 const url = new URL(document.location);
 const searchParams = url.searchParams;
 const lienId = searchParams.get('id')
+if (lienId != null) {
+    let itemPrice = 0
+    let imgUrl
+    let altText
+    let articleName
+
+}
 /* Récupération des données d'un produit de l'API avec l'id du produit*/
 fetch(`http://localhost:3000/api/products/${lienId}`)
     .then((res) => res.json())
     .then((res) => afficherProduit(res))
 /* creer et afficher des éléments produit dans la page produit*/
 function afficherProduit(canape) {
-    const altTxt = canape.altTxt
-    const colors = canape.colors
-    const description = canape.description
-    const imageUrl = canape.imageUrl
-    const name = canape.name
-    const price = canape.price
+    const { altTxt, colors, description, imageUrl, name, price } = canape
+    altText = altTxt
+    imgUrl = imageUrl
+    articleName = name
+    itemPrice = price
     /* on appel les fonctions pour afficher les elements html du produit*/
     creerImage(imageUrl, altTxt)
     creerTitre(name)
@@ -83,18 +89,23 @@ button.addEventListener("click", (e) => {
         ajouterAuPanier(color, quantity)
     }
 })
-function ajouterAuPanier(color, quantity){
+function ajouterAuPanier(color, quantity) {
+    const key = `${lienId}-${color}`
     const donnees = {
         id: lienId,
-        color: color,
-        quantity: quantity
+        colors: color,
+        quantity: quantity,
+        price: itemPrice,
+        imageUrl: imgUrl,
+        altTxt: altText,
+        name: articleName
     }
-/*stocker les donnees dans le localstorage puis 
-convertir les donnees en chaine json*/
-window.localStorage.setItem(lienId, JSON.stringify(donnees))
+    /*stocker les donnees dans le localstorage puis 
+    convertir les donnees en chaine json*/
+    window.localStorage.setItem(key, JSON.stringify(donnees))
 
-/*Au clique sur (ajouter au panier) nous redirigera dans
- cart.html(panier) qui va recuperer les "donnees" dans le localstorage*/
-window.location.href = "cart.html"
+    /*Au clique sur (ajouter au panier) nous redirigera dans
+     cart.html(panier) qui va recuperer les "donnees" dans le localstorage*/
+    window.location.href = "cart.html"
 }
 
