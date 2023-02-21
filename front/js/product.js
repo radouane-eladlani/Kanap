@@ -1,20 +1,21 @@
-/* Récupération de l'id et savoir lequel des differents produits de l'API a afficher*/
-const url = new URL(document.location);
-const searchParams = url.searchParams;
+/* Récupération de l'id du produit et savoir lequel des differents produits de l'API a afficher*/
+const url = new URL(document.location)
+const searchParams = url.searchParams
 const lienId = searchParams.get('id')
-if (lienId != null) {
-    let itemPrice = 0
-    let imgUrl
-    let altText
-    let articleName
+/* declarer les variables global du produit pour pouvoir les utiliser dans toutes les fonctions*/
+let altText = ""
+let imgUrl = ""
+let articleName = ""
+let itemPrice = ""
 
-}
 /* Récupération des données d'un produit de l'API avec l'id du produit*/
 fetch(`http://localhost:3000/api/products/${lienId}`)
     .then((res) => res.json())
     .then((res) => afficherProduit(res))
 /* creer et afficher des éléments produit dans la page produit*/
 function afficherProduit(canape) {
+    /* variables locales de la fonction afficherProduit 
+    pour pouvoir les utiliser que dans cette fonction*/
     const { altTxt, colors, description, imageUrl, name, price } = canape
     altText = altTxt
     imgUrl = imageUrl
@@ -89,23 +90,42 @@ button.addEventListener("click", (e) => {
         ajouterAuPanier(color, quantity)
     }
 })
+/* fonction pour ajouter le canape dans le panier*/
 function ajouterAuPanier(color, quantity) {
     const key = `${lienId}-${color}`
-    const donnees = {
+    /* si le produit existe dans le localstorage alors on 
+    additionne l'ancienne quantite avec la nouvelle quantite*/
+    if (localStorage.getItem(key) != null) {
+        /* recupere le produit dans le localstorage*/
+        let itemString = localStorage.getItem(key)
+        /* convertir itemString (produit) en object (item)*/ 
+        let itemObject = JSON.parse(itemString)
+        /*nouvelle quantite plus l'ancienne quantite dans panier*/
+        itemObject.quantity = itemObject.quantity + parseInt(quantity)
+        /* mettre a jour la valeur du produit dans le localstorage
+        car la key existe deja dans le localstorage*/  
+        localStorage.setItem(key,JSON.stringify(itemObject))
+        window.location.href = "cart.html"
+    }
+    else{
+        const donnees = {
         id: lienId,
-        colors: color,
-        quantity: quantity,
+        color: color,
+        quantity: parseInt(quantity),
         price: itemPrice,
         imageUrl: imgUrl,
         altTxt: altText,
         name: articleName
     }
-    /*stocker les donnees dans le localstorage puis 
-    convertir les donnees en chaine json*/
+    /*stocker les donnees dans le localstorage*/
+    /*JSON.stringify pour convertir la donnee en chaine de caractere et faciliter le stockage*/
+    /*l'inverse de JSON.stringify est JSON.parse pour convertir la chaine de caractere en objet*/
     window.localStorage.setItem(key, JSON.stringify(donnees))
-
     /*Au clique sur (ajouter au panier) nous redirigera dans
-     cart.html(panier) qui va recuperer les "donnees" dans le localstorage*/
+     cart.html (panier) qui va recuperer les donnees dans le localstorage*/
     window.location.href = "cart.html"
+    }
+    
+    
 }
 
