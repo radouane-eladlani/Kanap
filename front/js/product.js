@@ -97,35 +97,31 @@ function ajouterAuPanier(color, quantity) {
     additionne l'ancienne quantite avec la nouvelle quantite*/
     if (localStorage.getItem(key) != null) {
         /* recupere le produit dans le localstorage*/
-        let itemString = localStorage.getItem(key)
-        /* convertir itemString (produit) en object (item)*/ 
-        let itemObject = JSON.parse(itemString)
+        const itemString = localStorage.getItem(key)
+        /* convertir itemString (produit) en object (item)*/
+        const itemObject = JSON.parse(itemString)
         /*nouvelle quantite plus l'ancienne quantite dans panier*/
         itemObject.quantity = itemObject.quantity + parseInt(quantity)
         /* mettre a jour la valeur du produit dans le localstorage
-        car la key existe deja dans le localstorage*/  
-        localStorage.setItem(key,JSON.stringify(itemObject))
+        car la key existe deja dans le localstorage*/
+        localStorage.setItem(key, JSON.stringify(itemObject))
         window.location.href = "cart.html"
     }
-    else{
-        const donnees = {
-        id: lienId,
-        color: color,
-        quantity: parseInt(quantity),
-        price: itemPrice,
-        imageUrl: imgUrl,
-        altTxt: altText,
-        name: articleName
+    else {
+        const donnee = {
+            id: lienId,
+            quantity: parseInt(quantity),
+            color: color
+        }
+        /*stocker les donnees dans le localstorage*/
+        /*JSON.stringify pour convertir la donnee en chaine de caractere et faciliter le stockage*/
+        /*l'inverse de JSON.stringify est JSON.parse pour convertir la chaine de caractere en objet*/
+        window.localStorage.setItem(key, JSON.stringify(donnee))
+        /*Au clique sur (ajouter au panier) nous redirigera dans
+         cart.html (panier) qui va recuperer les donnees dans le localstorage*/
+        window.location.href = "cart.html"
     }
-    /*stocker les donnees dans le localstorage*/
-    /*JSON.stringify pour convertir la donnee en chaine de caractere et faciliter le stockage*/
-    /*l'inverse de JSON.stringify est JSON.parse pour convertir la chaine de caractere en objet*/
-    window.localStorage.setItem(key, JSON.stringify(donnees))
-    /*Au clique sur (ajouter au panier) nous redirigera dans
-     cart.html (panier) qui va recuperer les donnees dans le localstorage*/
-    window.location.href = "cart.html"
-    }
-    
-    
+
+
 }
 

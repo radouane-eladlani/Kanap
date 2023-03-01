@@ -3,22 +3,30 @@ const cart = []
 /* Appel a la fonction pour afficher les elements du produit*/
 recupererItems()
 /* parcourir produit par produit pour les afficher */
-cart.forEach((item) => afficherItem(item))
 
 /* recuperer key (les elements du produit) et les mettres dans le localstorage 
 pour afficher en un objet dans la variable "cart"*/
-function recupererItems() {
+async function recupererItems() {
 
     /* recuperer le nombre d'items dans le localstorage*/
     const nombresItems = localStorage.length
     for (let i = 0; i < nombresItems; i++) {
+        let key = localStorage.key(i).split("-")[0]
         /* recuperer sur le local storage avec la key (l'id du produit) en tant que chaine de caractere
         pour mettre le produit en tant qu'objet dans le panier*/
-        const item = localStorage.getItem(localStorage.key(i))
-        const itemObject = JSON.parse(item)
-        cart.push(itemObject)
+        await fetch(`http://localhost:3000/api/products/${key}`)
+            .then((response) => response.json())
+            .then((donnee) => {
+                /* recupere le produit dans le localstorage*/
+                let itemString = localStorage.getItem(localStorage.key(i))
+                /* convertir itemString (produit) en object (item)*/
+                let itemObject = JSON.parse(itemString)
+                donnee.quantity = itemObject.quantity
+                donnee.color = itemObject.color
+                cart.push(donnee)
+            })
     }
-
+    cart.forEach((item) => afficherItem(item))
 }
 
 /* creer un article et une img et la description et le input quantity 
@@ -179,7 +187,7 @@ function misAJourAutoPriceEtQuantity(item, nouvelleQuantity) {
 function sauvegarderNouvelleQuantity(item,) {
     const donneesSauvegarder = JSON.stringify(item)
     const key = item.id + "-" + item.color
-    localStorage.setItem(key, donneesSauvegarder,)
+    localStorage.setItem(key, donneesSauvegarder)
 
 
 }
@@ -249,13 +257,13 @@ function soumettreLeForm(e) {
     /* il va verifier si le formulaire est invalide alors tu me return "c'est a dire tu va pas plus loin"*/
     if (etUnFormInvalide()) return
     if (etUnEmailInvalide()) return
+    effacerLesErreurs()
     /* il va envoyer les informations du formulaire avec la methode POST*/
-    const corpsDuTexte = recupererLesInfoDuFormulaire()
-    console.log(corpsDuTexte);
+    const body = recupererLesInfoDuFormulaire()
     fetch("http://localhost:3000/api/products/order", {
         method: "POST",
         /* il va convertir le corpsDuTexte en chaine de caractere*/
-        body: JSON.stringify(corpsDuTexte),
+        body: JSON.stringify(body),
         /* il va definir le type de contenu*/
         headers: { "Content-Type": "application/json" }
     })
@@ -267,18 +275,41 @@ function soumettreLeForm(e) {
             window.location.href = "confirmation.html" + "?orderId=" + orderId
         })
 }
+
 function etUnFormInvalide() {
     const form = document.querySelector(".cart__order__form")
     /* il va recuperer tous les inputs dans la balise form */
     const inputs = form.querySelectorAll("input")
+    let estInvalide = false
     for (const input of inputs) {
-        if (input.value === "") {
-            alert("Veuillez remplir tous les champs")
-            return true
+        /* il va verifier si les inputs sont vide alors il va afficher l'alerte*/
+        if (input.value.trim() === "") {
+            input.nextElementSibling.innerHTML = "Veuillez remplir ce champ"
+            estInvalide = true
+        }
+        /* il va verifier si l'inputs firstName et lastName ont des chiffres alors il affichera l'erreur*/
+        if (input.name === "firstName" || input.name === "lastName") {
+            if (/[0-9]/.test(input.value)) {
+                input.nextElementSibling.innerHTML = "Le champ ne dois pas contenir de chiffres"
+                estInvalide = true
+            }
         }
     }
     /* sinon tu me retourne false le formulaire est valide*/
-    return false
+    return estInvalide
+}
+
+function effacerLesErreurs() {
+    const form = document.querySelector(".cart__order__form")
+    const inputs = form.querySelectorAll("input")
+    /*il va parcourir tous les inputs et effacer le contenu de la balise p*/
+    for (const input of inputs) {
+        /* si le type de l'input n'est pas submit */
+        if (input.type !== "submit") {
+            /* il va effacer le contenu de la balise p (l'erreur)*/
+            input.nextElementSibling.innerHTML = ""
+        }
+    }
 }
 
 function etUnEmailInvalide() {
@@ -293,7 +324,7 @@ function etUnEmailInvalide() {
     /* sinon tu me retourne false le formulaire est valide*/
     return false
 }
-/* il va recuperer les informations du form et les mettre dans le corpsDuTexte*/
+/* il va recuperer les informations du form et les mettre dans le body*/
 function recupererLesInfoDuFormulaire() {
     const form = document.querySelector(".cart__order__form")
     const firstName = form.elements.firstName.value
@@ -302,7 +333,7 @@ function recupererLesInfoDuFormulaire() {
     const city = form.elements.city.value
     const email = form.elements.email.value
 
-    const corpsDuTexte = {
+    const body = {
         contact: {
             firstName: firstName,
             lastName: lastName,
@@ -313,8 +344,8 @@ function recupererLesInfoDuFormulaire() {
         /* il va recuperer les ids des produits dans le localstorage*/
         products: recupererLesIdsDuLocalStorage()
     }
-    /* et il va retourner "corpsDuTexte"*/
-    return corpsDuTexte
+    /* et il va retourner body*/
+    return body
 
 }
 /* il va recuperer les ids des produits dans le localstorage*/
@@ -329,4 +360,5 @@ function recupererLesIdsDuLocalStorage() {
         ids.push(id)
     }
     return ids
+
 }
