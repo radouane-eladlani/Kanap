@@ -1,9 +1,11 @@
 /* la variable cart est un tableau d'éléments pour les produits qui represente le panier*/
-const cart = []
+const cart = [];
 /* Appel a la fonction pour afficher les elements du produit*/
-recupererItems()
+(async() => {
+    await recupererItems()
+    cart.forEach((item) => afficherItem(item))
+})()
 /* parcourir produit par produit pour les afficher */
-
 /* recuperer key (les elements du produit) et les mettres dans le localstorage 
 pour afficher en un objet dans la variable "cart"*/
 async function recupererItems() {
@@ -26,7 +28,6 @@ async function recupererItems() {
                 cart.push(donnee)
             })
     }
-    cart.forEach((item) => afficherItem(item))
 }
 
 /* creer un article et une img et la description et le input quantity 
